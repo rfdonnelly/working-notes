@@ -1,4 +1,6 @@
-= Autoinstall Ubuntu via USB
+= Autoinstall Linux via USB
+:keywords: linux, ubuntu
+:revdate: 2024-10-27
 
 These instructions are for automating the install of Ubuntu on to a physical machine without a monitor or keyboard.
 Only two free USB slots and a network connection are required.
@@ -18,3 +20,72 @@ Option: install Ubuntu Desktop packages on top of Ubuntu Server.
 * BIOS is configured to boot from USB before disk drive
 * Two free USB slots
 * A network connection
+
+== Create Autoinstall Config
+
+Files:
+
+[listing]
+----
+meta-data
+user-data
+----
+
+Create `meta-data`:
+
+[listing]
+----
+touch meta-data
+----
+
+Create `user-data` with the following content:
+
+[source,yaml]
+.user-data
+----
+#cloud-config
+autoinstall:
+  version: 1
+----
+
+== Host the Configration
+
+=== Option 1: Host on Webserver
+
+WARNING: This method may or may not work due to a known https://github.com/canonical/cloud-init/issues/4044[race condition bug] in cloud-init.
+
+. Serve the configuration using a webserver
++
+[listing]
+----
+python -m http.server
+----
+
+. Insert the bootable USB stick
+. Power on the machine
+. At the GRUB menu,
+.. Press 'e' to edit the GRUB configuration
+. In the GRUB editor,
+.. Modify the 'linux' line to be:
++
+[listing]
+----
+linux ... autoinstall ds=nocloud\;s=http://CLOUD_CONFIG_HOST:8000
+----
++
+NOTE: Replace `CLOUD_CONFIG_HOST` with the address of the cloud config webserver.
++
+NOTE: The semicolon after `ds=nocloud` must be escaped or GRUB will treat it as an end of statement.
+.. Press 'Ctrl+x' to boot
+
+=== Option 2: Host on USB Drive
+
+Create a USB stick with the following properties:
+
+* Volume filesystem: vfat or fat32
+* Volume label: `CIDATA`
+
+Cloud-init will automatically treat any volume with the label `CIDATA` as a datasource.
+
+[appendix]
+== Modify the Kernel Parameters

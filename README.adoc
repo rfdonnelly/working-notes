@@ -1,5 +1,7 @@
 = Working Notes
 
+https://rfdonnelly.github.io/working-notes
+
 == Build
 
  apptainer run docker://antora/antora generate antora-playbook.yml
