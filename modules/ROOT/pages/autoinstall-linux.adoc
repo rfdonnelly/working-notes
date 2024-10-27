@@ -12,9 +12,11 @@ These instructions were heavily influenced by Jim Angel's https://www.jimangel.i
 
 == Host Prerequisites
 
-* BIOS is configured to boot from USB before disk drive
-* Two free USB slots
+* BIOS is configured to boot from USB stick before disk drive
+* One free USB slot
 * A network connection
+* (optional) Monitor
+* (optional) Keyboard
 
 == Create Autoinstall Config
 
@@ -81,3 +83,34 @@ Create a USB stick with the following properties:
 * Volume label: `CIDATA`
 
 Cloud-init will automatically treat any volume with the label `CIDATA` as a datasource.
+
+[appendix]
+== Modify ISO for non-interactive autoinstall
+
+[appendix]
+== Configure Ventoy for autoinstall
+
+Create a Ventoy bootable USB stick with 3 partitions below 137GB.
+
+Paritions:
+
+. (exFAT) Main partition to hold ISO files
+. (FAT) Boot partition to hold Ventoy files
+. (vFAT) Config partition to hold cloud config files
++
+IMPORTANT: This partition must be labeled "CIDATA".
+
+Steps:
+
+. Run Ventoy2Disk
+. Select the Option>Partition Configuration menu item
+. Enable Preserve some space at the end of the disk
+. Set preserved space to:
+** If usb_stick_size > 137GB: (usb_stick_size - 137GB) + 128MB
+** If usb_stick_size <= 137GB: 128MB
+
+References:
+
+* https://www.ventoy.net/en/doc_disk_layout.html[Ventoy Disk Layout In MBR]
+* https://www.ventoy.net/en/doc_disk_layout_gpt.html[Ventory Disk Layout In GPT]
+* https://www.ventoy.net/en/doc_legacy_limit.html[Legacy BIOS Access Range Limitation]
