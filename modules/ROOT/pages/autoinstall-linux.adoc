@@ -1,0 +1,20 @@
+= Autoinstall Ubuntu via USB
+
+These instructions are for automating the install of Ubuntu on to a physical machine without a monitor or keyboard.
+Only two free USB slots and a network connection are required.
+
+These instructions were created using Ubuntu Server 24.04 LTS.
+
+== TODO
+
+=== Ubuntu Desktop
+
+How to autoinstall Ubuntu Desktop?
+Ubuntu Desktop uses a different installer but will use subiquity in the future?
+Option: install Ubuntu Desktop packages on top of Ubuntu Server.
+
+== Host Prerequisites
+
+* BIOS is configured to boot from USB before disk drive
+* Two free USB slots
+* A network connection

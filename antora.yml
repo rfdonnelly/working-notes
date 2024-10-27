@@ -1,0 +1,5 @@
+name: working-notes
+version: ~
+title: Working Notes
+nav:
+- modules/ROOT/nav.adoc
