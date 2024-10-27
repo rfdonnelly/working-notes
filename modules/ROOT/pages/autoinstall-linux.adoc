@@ -6,14 +6,9 @@ These instructions are for automating the install of Ubuntu on to a physical mac
 Only two free USB slots and a network connection are required.
 
 These instructions were created using Ubuntu Server 24.04 LTS.
+They should also work for Ubuntu Desktop 24.04 LTS.
 
-== TODO
-
-=== Ubuntu Desktop
-
-How to autoinstall Ubuntu Desktop?
-Ubuntu Desktop uses a different installer but will use subiquity in the future?
-Option: install Ubuntu Desktop packages on top of Ubuntu Server.
+These instructions were heavily influenced by Jim Angel's https://www.jimangel.io/posts/automate-ubuntu-22-04-lts-bare-metal[How to automate a bare metal Ubuntu 22.04 LTS installation] and Subiquity's https://canonical-subiquity.readthedocs-hosted.com/en/latest/howto/autoinstall-quickstart.html[Autoinstall quick start].
 
 == Host Prerequisites
 
@@ -86,6 +81,3 @@ Create a USB stick with the following properties:
 * Volume label: `CIDATA`
 
 Cloud-init will automatically treat any volume with the label `CIDATA` as a datasource.
-
-[appendix]
-== Modify the Kernel Parameters
