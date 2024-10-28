@@ -103,6 +103,8 @@ Ventoy volume
 *** Subtype: `Ubuntu`
 *** Version: `Ubuntu (64-bit)`
 ** Hardware
+*** Base Memory: 8192 MB
+*** CPUs: 2
 *** Enable EFI
 
 . Edit VM settings
