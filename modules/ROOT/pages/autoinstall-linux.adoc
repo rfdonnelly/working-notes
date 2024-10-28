@@ -2,13 +2,14 @@
 :keywords: linux, ubuntu
 :revdate: 2024-10-27
 
-These instructions are for automating the install of Ubuntu on to a physical machine without a monitor or keyboard.
-Only two free USB slots and a network connection are required.
+These instructions are for automating the install of Ubuntu on to a physical machine.
 
-These instructions were created using Ubuntu Server 24.04 LTS.
-They should also work for Ubuntu Desktop 24.04 LTS.
+These instructions were created using Ubuntu Server 24.04 LTS but they are also applicable to Ubuntu Desktop.
 
 These instructions were heavily influenced by Jim Angel's https://www.jimangel.io/posts/automate-ubuntu-22-04-lts-bare-metal[How to automate a bare metal Ubuntu 22.04 LTS installation] and Subiquity's https://canonical-subiquity.readthedocs-hosted.com/en/latest/howto/autoinstall-quickstart.html[Autoinstall quick start].
+Jim's howto requires 2 USB sticks while this howto only requires one.
+Jim's howto requires modification of the ISO for headless install while this howto does not.
+Both of these enhancements are enabled via Ventoy.
 
 == Host Prerequisites
 
@@ -18,99 +19,98 @@ These instructions were heavily influenced by Jim Angel's https://www.jimangel.i
 * (optional) Monitor
 * (optional) Keyboard
 
-== Create Autoinstall Config
+== Install Ventoy to USB Stick
 
-Files:
+. Download Ventoy from https://www.ventoy.net/en/download.html
+. Run `Ventoy2Disk`
+. Select Device
+. Install with default options
 
-[listing]
-----
-meta-data
-user-data
-----
-
-Create `meta-data`:
+== USB Stick Contents
 
 [listing]
 ----
-touch meta-data
+Ventoy volume
+├── ventoy
+|   ├── autoinstall
+|   |   ├── cloud-init-user-data-1.yml
+|   |   └── cloud-init-user-data-N.yml
+|   └── ventoy.json <== Ventoy configuration
+└── isos
+    ├── ubuntu-server-24.04.iso
+    └── ubuntu-desktop-24.04.iso
 ----
 
-Create `user-data` with the following content:
+== Add ISOs to USB Stick
 
-[source,yaml]
-.user-data
+. Create `/isos` directory on the USB stick "Ventoy" volume.
+
+. Add the Ubuntu Server and/or Ubuntu Desktop ISOs to this directory.
+
+== Configure Ventoy Timeouts
+
+[source,json]
+.`/ventoy/ventoy.json`
 ----
-#cloud-config
-autoinstall:
-  version: 1
-----
-
-== Host the Configration
-
-=== Option 1: Host on Webserver
-
-WARNING: This method may or may not work due to a known https://github.com/canonical/cloud-init/issues/4044[race condition bug] in cloud-init.
-
-. Serve the configuration using a webserver
-+
-[listing]
-----
-python -m http.server
+{
+    "control":[
+        { "VTOY_MENU_TIMEOUT": "5" },
+        { "VTOY_DEFAULT_IMAGE": "/isos/ubuntu-24.04.1-live-server-amd64.iso" },
+        { "VTOY_SECONDARY_BOOT_MENU": "1" },
+        { "VTOY_SECONDARY_TIMEOUT": "5" }
+    ]
+}
 ----
 
-. Insert the bootable USB stick
-. Power on the machine
-. At the GRUB menu,
-.. Press 'e' to edit the GRUB configuration
-. In the GRUB editor,
-.. Modify the 'linux' line to be:
-+
-[listing]
+== Add Autoinstall Configs to USB Stick
+
+. Create `/ventoy/autoinstall` directory on the USB stick "Ventoy" volume.
+. Create one file per configuration in `/ventoy/autoinstall`
+
+=== Add Autoinstall Configs to Ventoy Config
+
+[source,json]
+.`/ventoy/ventoy.json`
 ----
-linux ... autoinstall ds=nocloud\;s=http://CLOUD_CONFIG_HOST:8000
+{
+    "control":[
+        { "VTOY_MENU_TIMEOUT": "5" },
+        { "VTOY_DEFAULT_IMAGE": "/isos/ubuntu-24.04.1-live-server-amd64.iso" },
+        { "VTOY_SECONDARY_BOOT_MENU": "1" },
+        { "VTOY_SECONDARY_TIMEOUT": "5" }
+    ]
+    "auto_install":[
+        {
+            "image": "/isos/ubuntu-24.04.1-live-server-amd64.iso",
+            "template":[
+                "/ventoy/autoinstall/ubuntu-server-24.04.yml",
+                "/ventoy/autoinstall/ubuntu-desktop-24.04.yml"
+            ],
+            "timeout": 10,
+            "autosel": 1
+        }
+    ]
+}
 ----
-+
-NOTE: Replace `CLOUD_CONFIG_HOST` with the address of the cloud config webserver.
-+
-NOTE: The semicolon after `ds=nocloud` must be escaped or GRUB will treat it as an end of statement.
-.. Press 'Ctrl+x' to boot
-
-=== Option 2: Host on USB Drive
-
-Create a USB stick with the following properties:
-
-* Volume filesystem: vfat or fat32
-* Volume label: `CIDATA`
-
-Cloud-init will automatically treat any volume with the label `CIDATA` as a datasource.
 
 [appendix]
-== Modify ISO for non-interactive autoinstall
+== Test using VirtualBox
 
-[appendix]
-== Configure Ventoy for autoinstall
+. Create a new VM
+** Name and Operating System
+*** Name: `autoinstall-test`
+*** Type: `Linux`
+*** Subtype: `Ubuntu`
+*** Version: `Ubuntu (64-bit)`
+** Hardware
+*** Enable EFI
 
-Create a Ventoy bootable USB stick with 3 partitions below 137GB.
+. Edit VM settings
+** USB
+... Select USB 3.0 (if stick supports it)
+... Add new USB filter
+... Select USB stick
 
-Paritions:
+. Start the VM
 
-. (exFAT) Main partition to hold ISO files
-. (FAT) Boot partition to hold Ventoy files
-. (vFAT) Config partition to hold cloud config files
-+
-IMPORTANT: This partition must be labeled "CIDATA".
-
-Steps:
-
-. Run Ventoy2Disk
-. Select the Option>Partition Configuration menu item
-. Enable Preserve some space at the end of the disk
-. Set preserved space to:
-** If usb_stick_size > 137GB: (usb_stick_size - 137GB) + 128MB
-** If usb_stick_size <= 137GB: 128MB
-
-References:
-
-* https://www.ventoy.net/en/doc_disk_layout.html[Ventoy Disk Layout In MBR]
-* https://www.ventoy.net/en/doc_disk_layout_gpt.html[Ventory Disk Layout In GPT]
-* https://www.ventoy.net/en/doc_legacy_limit.html[Legacy BIOS Access Range Limitation]
+. Sit back and let the install happen
