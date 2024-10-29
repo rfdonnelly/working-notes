@@ -78,7 +78,7 @@ Ventoy volume
         { "VTOY_DEFAULT_IMAGE": "/isos/ubuntu-24.04.1-live-server-amd64.iso" },
         { "VTOY_SECONDARY_BOOT_MENU": "1" },
         { "VTOY_SECONDARY_TIMEOUT": "5" }
-    ]
+    ],
     "auto_install":[
         {
             "image": "/isos/ubuntu-24.04.1-live-server-amd64.iso",
